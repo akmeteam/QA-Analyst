@@ -93,6 +93,11 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Make images and containers responsive */
+  img, video {
+    @apply max-w-full h-auto;
+  }
 }
 
 @layer components {
@@ -122,5 +127,33 @@
 
   .qa-badge-yellow {
     @apply qa-badge bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300;
+  }
+
+  /* Responsive grid layouts */
+  .responsive-grid {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4;
+  }
+
+  .responsive-grid-2 {
+    @apply grid grid-cols-1 md:grid-cols-2 gap-4;
+  }
+
+  /* Responsive text */
+  .responsive-text-xl {
+    @apply text-lg md:text-xl lg:text-2xl;
+  }
+
+  .responsive-text-lg {
+    @apply text-base md:text-lg;
+  }
+
+  /* Responsive padding and margins */
+  .responsive-container {
+    @apply px-4 sm:px-6 md:px-8 lg:px-12 py-4 sm:py-6 md:py-8;
+  }
+
+  /* Responsive flex layouts */
+  .responsive-flex {
+    @apply flex flex-col sm:flex-row;
   }
 }
