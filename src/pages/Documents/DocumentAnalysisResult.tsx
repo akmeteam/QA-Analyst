@@ -15,11 +15,14 @@ import {
   CheckCircle2, 
   Download, 
   Save,
-  FileCode
+  FileCode,
+  Copy
 } from "lucide-react";
+import JavaCodePreview from './JavaCodePreview';
 
 const DocumentAnalysisResult = () => {
   const [selectedTab, setSelectedTab] = useState("stories");
+  const [showJavaCode, setShowJavaCode] = useState(false);
   const { toast } = useToast();
 
   const handleSaveToProject = () => {
@@ -30,65 +33,83 @@ const DocumentAnalysisResult = () => {
   };
 
   const handleDownloadAutomation = () => {
+    setShowJavaCode(true);
     toast({
-      title: "Descarga iniciada",
-      description: "Descargando código de automatización Java.",
+      title: "Generando código",
+      description: "Generando código de automatización Java basado en los casos de prueba.",
+    });
+  };
+
+  const handleCopyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast({
+      title: "Copiado al portapapeles",
+      description: "El texto ha sido copiado al portapapeles.",
     });
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex justify-between items-start">
-          <div>
-            <CardTitle>Resultados del Análisis</CardTitle>
-            <CardDescription>
-              Resultados del análisis de documentos con IA. Revisa y edita antes de guardar en el proyecto.
-            </CardDescription>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={handleDownloadAutomation}>
-              <FileCode className="mr-2 h-4 w-4" />
-              Descargar Automatización
-            </Button>
-            <Button onClick={handleSaveToProject}>
-              <Save className="mr-2 h-4 w-4" />
-              Guardar en Proyecto
-            </Button>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
-          <TabsList className="grid grid-cols-3 w-full mb-4">
-            <TabsTrigger value="stories">
-              <ListTodo className="mr-2 h-4 w-4" />
-              Historias de Usuario
-            </TabsTrigger>
-            <TabsTrigger value="test-cases">
-              <ClipboardCheck className="mr-2 h-4 w-4" />
-              Casos de Prueba
-            </TabsTrigger>
-            <TabsTrigger value="test-plan">
-              <GanttChart className="mr-2 h-4 w-4" />
-              Plan de Pruebas
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="stories">
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-medium">Historias de Usuario Generadas</h3>
-                <div className="text-sm text-muted-foreground">3 historias encontradas</div>
+    <>
+      {showJavaCode ? (
+        <JavaCodePreview onBack={() => setShowJavaCode(false)} />
+      ) : (
+        <Card>
+          <CardHeader>
+            <div className="flex justify-between items-start">
+              <div>
+                <CardTitle>Resultados del Análisis</CardTitle>
+                <CardDescription>
+                  Resultados del análisis de documentos con IA. Revisa y edita antes de guardar en el proyecto.
+                </CardDescription>
               </div>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={handleDownloadAutomation}>
+                  <FileCode className="mr-2 h-4 w-4" />
+                  Generar Automatización
+                </Button>
+                <Button onClick={handleSaveToProject}>
+                  <Save className="mr-2 h-4 w-4" />
+                  Guardar en Proyecto
+                </Button>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
+              <TabsList className="grid grid-cols-3 w-full mb-4">
+                <TabsTrigger value="stories">
+                  <ListTodo className="mr-2 h-4 w-4" />
+                  Historias de Usuario
+                </TabsTrigger>
+                <TabsTrigger value="test-cases">
+                  <ClipboardCheck className="mr-2 h-4 w-4" />
+                  Casos de Prueba
+                </TabsTrigger>
+                <TabsTrigger value="test-plan">
+                  <GanttChart className="mr-2 h-4 w-4" />
+                  Plan de Pruebas
+                </TabsTrigger>
+              </TabsList>
 
-              <Card className="p-4 border">
-                <div className="flex items-start gap-2">
-                  <Checkbox id="story1" defaultChecked />
-                  <div className="grid gap-1.5 w-full">
-                    <Label htmlFor="story1" className="font-medium">Como usuario, quiero poder iniciar sesión en la aplicación</Label>
-                    <Textarea 
-                      defaultValue={`Descripción: El usuario debe poder acceder a la aplicación mediante un proceso de inicio de sesión.
+              <TabsContent value="stories">
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-medium">Historias de Usuario Generadas</h3>
+                    <div className="text-sm text-muted-foreground">3 historias encontradas</div>
+                  </div>
+
+                  <Card className="p-4 border">
+                    <div className="flex items-start gap-2">
+                      <Checkbox id="story1" defaultChecked />
+                      <div className="grid gap-1.5 w-full">
+                        <div className="flex justify-between items-center">
+                          <Label htmlFor="story1" className="font-medium">Como usuario, quiero poder iniciar sesión en la aplicación</Label>
+                          <Button variant="ghost" size="icon" onClick={() => handleCopyToClipboard("Como usuario, quiero poder iniciar sesión en la aplicación")}>
+                            <Copy className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <Textarea 
+                          defaultValue={`Descripción: El usuario debe poder acceder a la aplicación mediante un proceso de inicio de sesión.
 
 Criterios de Aceptación:
 Escenario: Inicio de sesión exitoso
@@ -104,19 +125,24 @@ Escenario: Inicio de sesión fallido
   Y hago clic en "Iniciar Sesión"
   Entonces debería ver un mensaje de error
   Y permanecer en la página de login`}
-                      rows={12}
-                    />
-                  </div>
-                </div>
-              </Card>
+                          rows={12}
+                        />
+                      </div>
+                    </div>
+                  </Card>
 
-              <Card className="p-4 border">
-                <div className="flex items-start gap-2">
-                  <Checkbox id="story2" defaultChecked />
-                  <div className="grid gap-1.5 w-full">
-                    <Label htmlFor="story2" className="font-medium">Como administrador, quiero gestionar usuarios</Label>
-                    <Textarea 
-                      defaultValue={`Descripción: El administrador debe poder ver, crear, editar y eliminar usuarios del sistema.
+                  <Card className="p-4 border">
+                    <div className="flex items-start gap-2">
+                      <Checkbox id="story2" defaultChecked />
+                      <div className="grid gap-1.5 w-full">
+                        <div className="flex justify-between items-center">
+                          <Label htmlFor="story2" className="font-medium">Como administrador, quiero gestionar usuarios</Label>
+                          <Button variant="ghost" size="icon" onClick={() => handleCopyToClipboard("Como administrador, quiero gestionar usuarios")}>
+                            <Copy className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <Textarea 
+                          defaultValue={`Descripción: El administrador debe poder ver, crear, editar y eliminar usuarios del sistema.
 
 Criterios de Aceptación:
 Escenario: Crear nuevo usuario
@@ -135,19 +161,24 @@ Escenario: Eliminar usuario
   Y confirmo la acción
   Entonces el usuario debería desaparecer de la lista
   Y recibir una notificación de eliminación exitosa`}
-                      rows={12}
-                    />
-                  </div>
-                </div>
-              </Card>
+                          rows={12}
+                        />
+                      </div>
+                    </div>
+                  </Card>
 
-              <Card className="p-4 border">
-                <div className="flex items-start gap-2">
-                  <Checkbox id="story3" defaultChecked />
-                  <div className="grid gap-1.5 w-full">
-                    <Label htmlFor="story3" className="font-medium">Como usuario, quiero restablecer mi contraseña</Label>
-                    <Textarea 
-                      defaultValue={`Descripción: El usuario debe poder solicitar el restablecimiento de su contraseña cuando la olvide.
+                  <Card className="p-4 border">
+                    <div className="flex items-start gap-2">
+                      <Checkbox id="story3" defaultChecked />
+                      <div className="grid gap-1.5 w-full">
+                        <div className="flex justify-between items-center">
+                          <Label htmlFor="story3" className="font-medium">Como usuario, quiero restablecer mi contraseña</Label>
+                          <Button variant="ghost" size="icon" onClick={() => handleCopyToClipboard("Como usuario, quiero restablecer mi contraseña")}>
+                            <Copy className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <Textarea 
+                          defaultValue={`Descripción: El usuario debe poder solicitar el restablecimiento de su contraseña cuando la olvide.
 
 Criterios de Aceptación:
 Escenario: Solicitud de restablecimiento
@@ -165,28 +196,33 @@ Escenario: Restablecimiento exitoso
   Y hago clic en "Guardar"
   Entonces debería poder iniciar sesión con mi nueva contraseña
   Y recibir confirmación de cambio exitoso`}
-                      rows={12}
-                    />
-                  </div>
+                          rows={12}
+                        />
+                      </div>
+                    </div>
+                  </Card>
                 </div>
-              </Card>
-            </div>
-          </TabsContent>
+              </TabsContent>
 
-          <TabsContent value="test-cases">
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-medium">Casos de Prueba Generados</h3>
-                <div className="text-sm text-muted-foreground">5 casos de prueba encontrados</div>
-              </div>
+              <TabsContent value="test-cases">
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-medium">Casos de Prueba Generados</h3>
+                    <div className="text-sm text-muted-foreground">5 casos de prueba encontrados</div>
+                  </div>
 
-              <Card className="p-4 border">
-                <div className="flex items-start gap-2">
-                  <Checkbox id="test1" defaultChecked />
-                  <div className="grid gap-1.5 w-full">
-                    <Label htmlFor="test1" className="font-medium">TC001: Validar inicio de sesión con credenciales válidas</Label>
-                    <Textarea 
-                      defaultValue={`Descripción: Verificar que un usuario pueda iniciar sesión con credenciales válidas.
+                  <Card className="p-4 border">
+                    <div className="flex items-start gap-2">
+                      <Checkbox id="test1" defaultChecked />
+                      <div className="grid gap-1.5 w-full">
+                        <div className="flex justify-between items-center">
+                          <Label htmlFor="test1" className="font-medium">TC001: Validar inicio de sesión con credenciales válidas</Label>
+                          <Button variant="ghost" size="icon" onClick={() => handleCopyToClipboard("TC001: Validar inicio de sesión con credenciales válidas")}>
+                            <Copy className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <Textarea 
+                          defaultValue={`Descripción: Verificar que un usuario pueda iniciar sesión con credenciales válidas.
 
 Precondiciones:
 - Usuario registrado en el sistema
@@ -210,19 +246,24 @@ Resultado esperado:
 Tipo de prueba: Funcional
 Criticidad: Alta
 Automatizable: Sí`}
-                      rows={12}
-                    />
-                  </div>
-                </div>
-              </Card>
+                          rows={12}
+                        />
+                      </div>
+                    </div>
+                  </Card>
 
-              <Card className="p-4 border">
-                <div className="flex items-start gap-2">
-                  <Checkbox id="test2" defaultChecked />
-                  <div className="grid gap-1.5 w-full">
-                    <Label htmlFor="test2" className="font-medium">TC002: Validar inicio de sesión con credenciales inválidas</Label>
-                    <Textarea 
-                      defaultValue={`Descripción: Verificar que se muestre un mensaje de error al ingresar credenciales inválidas.
+                  <Card className="p-4 border">
+                    <div className="flex items-start gap-2">
+                      <Checkbox id="test2" defaultChecked />
+                      <div className="grid gap-1.5 w-full">
+                        <div className="flex justify-between items-center">
+                          <Label htmlFor="test2" className="font-medium">TC002: Validar inicio de sesión con credenciales inválidas</Label>
+                          <Button variant="ghost" size="icon" onClick={() => handleCopyToClipboard("TC002: Validar inicio de sesión con credenciales inválidas")}>
+                            <Copy className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <Textarea 
+                          defaultValue={`Descripción: Verificar que se muestre un mensaje de error al ingresar credenciales inválidas.
 
 Precondiciones:
 - Aplicación accesible
@@ -245,28 +286,33 @@ Resultado esperado:
 Tipo de prueba: Funcional
 Criticidad: Alta
 Automatizable: Sí`}
-                      rows={12}
-                    />
-                  </div>
+                          rows={12}
+                        />
+                      </div>
+                    </div>
+                  </Card>
                 </div>
-              </Card>
-            </div>
-          </TabsContent>
+              </TabsContent>
 
-          <TabsContent value="test-plan">
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-medium">Plan de Pruebas Generado</h3>
-                <div className="text-sm text-muted-foreground">Plan basado en 2 módulos</div>
-              </div>
+              <TabsContent value="test-plan">
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-medium">Plan de Pruebas Generado</h3>
+                    <div className="text-sm text-muted-foreground">Plan basado en 2 módulos</div>
+                  </div>
 
-              <Card className="p-4 border">
-                <div className="flex items-start gap-2">
-                  <Checkbox id="plan" defaultChecked />
-                  <div className="grid gap-1.5 w-full">
-                    <Label htmlFor="plan" className="font-medium">Plan de Pruebas - Módulo de Autenticación</Label>
-                    <Textarea 
-                      defaultValue={`# Plan de Pruebas - Módulo de Autenticación
+                  <Card className="p-4 border">
+                    <div className="flex items-start gap-2">
+                      <Checkbox id="plan" defaultChecked />
+                      <div className="grid gap-1.5 w-full">
+                        <div className="flex justify-between items-center">
+                          <Label htmlFor="plan" className="font-medium">Plan de Pruebas - Módulo de Autenticación</Label>
+                          <Button variant="ghost" size="icon" onClick={() => handleCopyToClipboard("Plan de Pruebas - Módulo de Autenticación")}>
+                            <Copy className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <Textarea 
+                          defaultValue={`# Plan de Pruebas - Módulo de Autenticación
 
 ## 1. Introducción
 Este plan abarca las pruebas necesarias para verificar la funcionalidad del módulo de autenticación, incluyendo inicio de sesión, registro y recuperación de contraseña.
@@ -305,26 +351,28 @@ Este plan abarca las pruebas necesarias para verificar la funcionalidad del mód
 ## 8. Riesgos identificados
 - Problemas de integración con servicios de autenticación
 - Vulnerabilidades de seguridad en el proceso de login`}
-                      rows={20}
-                    />
-                  </div>
+                          rows={20}
+                        />
+                      </div>
+                    </div>
+                  </Card>
                 </div>
-              </Card>
-            </div>
-          </TabsContent>
-        </Tabs>
-      </CardContent>
-      <CardFooter className="flex justify-between">
-        <Button variant="outline">
-          <FileText className="mr-2 h-4 w-4" />
-          Ver Documento Original
-        </Button>
-        <Button onClick={handleSaveToProject}>
-          <CheckCircle2 className="mr-2 h-4 w-4" />
-          Guardar Seleccionados
-        </Button>
-      </CardFooter>
-    </Card>
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+          <CardFooter className="flex justify-between">
+            <Button variant="outline">
+              <FileText className="mr-2 h-4 w-4" />
+              Ver Documento Original
+            </Button>
+            <Button onClick={handleSaveToProject}>
+              <CheckCircle2 className="mr-2 h-4 w-4" />
+              Guardar Seleccionados
+            </Button>
+          </CardFooter>
+        </Card>
+      )}
+    </>
   );
 };
 
