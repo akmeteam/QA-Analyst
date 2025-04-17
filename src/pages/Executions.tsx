@@ -206,45 +206,284 @@ const Executions = () => {
         </TabsContent>
         
         <TabsContent value="in-progress"> {/* Muestra las ejecuciones que coinciden con el término de búsqueda y el estado "En Progreso" */}
-          <div className="grid grid-cols-1 gap-6">
-            {mockExecutions
-              .filter((execution) => execution.status === "En Progreso") // Filtra por estado "En Progreso"
-              .filter((execution) =>
-                searchTerm === "" || // Si no hay término de búsqueda, muestra todas las ejecuciones en progreso
-                Object.values(execution).some(value => // Busca en todos los valores de cada ejecución
-                  typeof value === 'string' && value.toLowerCase().includes(searchTerm.toLowerCase())
-                )
-              )
-              .map((execution) => (
-                <Card key={execution.id} className="hover:shadow-md transition-shadow">
-                  {/* ... (resto del contenido de la Card) ... */}
-                </Card>
-              ))}
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="completed"> {/* Muestra las ejecuciones que coinciden con el término de búsqueda y el estado "Completado" */}
-          <div className="grid grid-cols-1 gap-6">
-            {mockExecutions
-              .filter((execution) => execution.status === "Completado") // Filtra por estado "Completado"
-              .filter((execution) =>
-                searchTerm === "" || // Si no hay término de búsqueda, muestra todas las ejecuciones completadas
-                Object.values(execution).some(value => // Busca en todos los valores de cada ejecución
-                  typeof value === 'string' && value.toLowerCase().includes(searchTerm.toLowerCase())
-                )
-              )
-              .map((execution) => (
-                <Card key={execution.id} className="hover:shadow-md transition-shadow">
-                  {/* ... (resto del contenido de la Card) ... */}
-                </Card>
-              ))}
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="blocked"> {/* Muestra las ejecuciones que coinciden con el término de búsqueda y el estado "Bloqueado" */}
-          {/*  (lógica similar a los otros TabsContent para el estado "Bloqueado") */}
-        </TabsContent>
-      </Tabs>
+        <div className="grid grid-cols-1 gap-6">
+          {mockExecutions
+            .filter(
+              (execution) =>
+                execution.status === "En Progreso" &&
+                (searchTerm === "" ||
+                  Object.values(execution).some((value) =>
+                    typeof value === "string" &&
+                    value.toLowerCase().includes(searchTerm.toLowerCase())
+                  ))
+            )
+            .map((execution) => (
+              <Card key={execution.id} className="hover:shadow-md transition-shadow">
+                <CardHeader>
+                  <div className="flex justify-between items-start">
+                    <div className="flex items-start gap-2">
+                      <PlaySquare className="h-5 w-5 text-qa-purple mt-1" />
+                      <div>
+                        <CardTitle className="text-xl">{execution.title}</CardTitle>
+                        <CardDescription className="mt-1">{execution.description}</CardDescription>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {execution.status === "En Progreso" && <Badge className="bg-amber-500">{execution.status}</Badge>}
+                      {execution.status === "Completado" && <Badge className="bg-green-500">{execution.status}</Badge>}
+                      {execution.status === "Bloqueado" && <Badge className="bg-red-500">{execution.status}</Badge>}
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-muted-foreground">Progreso</span>
+                      <span className="font-medium">{execution.progress}%</span>
+                    </div>
+                    <Progress value={execution.progress} />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
+                    <div className="bg-muted/50 p-3 rounded-lg flex flex-col">
+                      <span className="text-xs text-muted-foreground">Casos de Prueba</span>
+                      <span className="text-xl font-bold mt-1">{execution.testCases}</span>
+                    </div>
+                    <div className="bg-green-100 dark:bg-green-900/20 p-3 rounded-lg flex flex-col">
+                      <span className="text-xs text-green-800 dark:text-green-300">Pasados</span>
+                      <span className="text-xl font-bold mt-1 text-green-800 dark:text-green-300">{execution.passedTests}</span>
+                    </div>
+                    <div className="bg-red-100 dark:bg-red-900/20 p-3 rounded-lg flex flex-col">
+                      <span className="text-xs text-red-800 dark:text-red-300">Fallidos</span>
+                      <span className="text-xl font-bold mt-1 text-red-800 dark:text-red-300">{execution.failedTests}</span>
+                    </div>
+                    <div className="bg-amber-100 dark:bg-amber-900/20 p-3 rounded-lg flex flex-col">
+                      <span className="text-xs text-amber-800 dark:text-amber-300">Pendientes</span>
+                      <span className="text-xl font-bold mt-1 text-amber-800 dark:text-amber-300">{execution.testCases - execution.executedTests}</span>
+                    </div>
+                    {execution.blockedTests > 0 && (
+                      <div className="bg-purple-100 dark:bg-purple-900/20 p-3 rounded-lg flex flex-col">
+                        <span className="text-xs text-purple-800 dark:text-purple-300">Bloqueados</span>
+                        <span className="text-xl font-bold mt-1 text-purple-800 dark:text-purple-300">{execution.blockedTests}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row justify-between gap-4 p-4 bg-muted/30 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback>{execution.executor.name.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <div className="text-sm font-medium">{execution.executor.name}</div>
+                        <div className="text-xs text-muted-foreground">Ejecutor</div>
+                      </div>
+                    </div>
+                    <div className="flex gap-4">
+                      <div className="flex items-center gap-2">
+                        <CalendarDays className="h-4 w-4 text-muted-foreground" />
+                        <div className="text-sm">
+                          <div>Inicio: {execution.startDate}</div>
+                          <div>Fin: {execution.endDate}</div>
+                        </div>
+                      </div>
+                      <Button variant="outline" size="sm" className="whitespace-nowrap">
+                        Ver Detalles
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+        </div>
+      </TabsContent>
+
+      <TabsContent value="completed"> {/* Muestra las ejecuciones que coinciden con el término de búsqueda y el estado "Completado" */}
+        <div className="grid grid-cols-1 gap-6">
+          {mockExecutions
+            .filter(
+              (execution) =>
+                execution.status === "Completado" &&
+                (searchTerm === "" ||
+                  Object.values(execution).some((value) =>
+                    typeof value === "string" &&
+                    value.toLowerCase().includes(searchTerm.toLowerCase())
+                  ))
+            )
+            .map((execution) => (
+              <Card key={execution.id} className="hover:shadow-md transition-shadow">
+                <CardHeader>
+                  <div className="flex justify-between items-start">
+                    <div className="flex items-start gap-2">
+                      <PlaySquare className="h-5 w-5 text-qa-purple mt-1" />
+                      <div>
+                        <CardTitle className="text-xl">{execution.title}</CardTitle>
+                        <CardDescription className="mt-1">{execution.description}</CardDescription>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {execution.status === "En Progreso" && <Badge className="bg-amber-500">{execution.status}</Badge>}
+                      {execution.status === "Completado" && <Badge className="bg-green-500">{execution.status}</Badge>}
+                      {execution.status === "Bloqueado" && <Badge className="bg-red-500">{execution.status}</Badge>}
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-muted-foreground">Progreso</span>
+                      <span className="font-medium">{execution.progress}%</span>
+                    </div>
+                    <Progress value={execution.progress} />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
+                    <div className="bg-muted/50 p-3 rounded-lg flex flex-col">
+                      <span className="text-xs text-muted-foreground">Casos de Prueba</span>
+                      <span className="text-xl font-bold mt-1">{execution.testCases}</span>
+                    </div>
+                    <div className="bg-green-100 dark:bg-green-900/20 p-3 rounded-lg flex flex-col">
+                      <span className="text-xs text-green-800 dark:text-green-300">Pasados</span>
+                      <span className="text-xl font-bold mt-1 text-green-800 dark:text-green-300">{execution.passedTests}</span>
+                    </div>
+                    <div className="bg-red-100 dark:bg-red-900/20 p-3 rounded-lg flex flex-col">
+                      <span className="text-xs text-red-800 dark:text-red-300">Fallidos</span>
+                      <span className="text-xl font-bold mt-1 text-red-800 dark:text-red-300">{execution.failedTests}</span>
+                    </div>
+                    <div className="bg-amber-100 dark:bg-amber-900/20 p-3 rounded-lg flex flex-col">
+                      <span className="text-xs text-amber-800 dark:text-amber-300">Pendientes</span>
+                      <span className="text-xl font-bold mt-1 text-amber-800 dark:text-amber-300">{execution.testCases - execution.executedTests}</span>
+                    </div>
+                    {execution.blockedTests > 0 && (
+                      <div className="bg-purple-100 dark:bg-purple-900/20 p-3 rounded-lg flex flex-col">
+                        <span className="text-xs text-purple-800 dark:text-purple-300">Bloqueados</span>
+                        <span className="text-xl font-bold mt-1 text-purple-800 dark:text-purple-300">{execution.blockedTests}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row justify-between gap-4 p-4 bg-muted/30 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback>{execution.executor.name.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <div className="text-sm font-medium">{execution.executor.name}</div>
+                        <div className="text-xs text-muted-foreground">Ejecutor</div>
+                      </div>
+                    </div>
+                    <div className="flex gap-4">
+                      <div className="flex items-center gap-2">
+                        <CalendarDays className="h-4 w-4 text-muted-foreground" />
+                        <div className="text-sm">
+                          <div>Inicio: {execution.startDate}</div>
+                          <div>Fin: {execution.endDate}</div>
+                        </div>
+                      </div>
+                      <Button variant="outline" size="sm" className="whitespace-nowrap">
+                        Ver Detalles
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+        </div>
+      </TabsContent>
+
+      <TabsContent value="blocked"> {/* Muestra las ejecuciones que coinciden con el término de búsqueda y el estado "Bloqueado" */}
+        <div className="grid grid-cols-1 gap-6">
+          {mockExecutions
+            .filter(
+              (execution) =>
+                execution.status === "Bloqueado" &&
+                (searchTerm === "" ||
+                  Object.values(execution).some((value) =>
+                    typeof value === "string" &&
+                    value.toLowerCase().includes(searchTerm.toLowerCase())
+                  ))
+            )
+            .map((execution) => (
+              <Card key={execution.id} className="hover:shadow-md transition-shadow">
+                <CardHeader>
+                  <div className="flex justify-between items-start">
+                    <div className="flex items-start gap-2">
+                      <PlaySquare className="h-5 w-5 text-qa-purple mt-1" />
+                      <div>
+                        <CardTitle className="text-xl">{execution.title}</CardTitle>
+                        <CardDescription className="mt-1">{execution.description}</CardDescription>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {execution.status === "En Progreso" && <Badge className="bg-amber-500">{execution.status}</Badge>}
+                      {execution.status === "Completado" && <Badge className="bg-green-500">{execution.status}</Badge>}
+                      {execution.status === "Bloqueado" && <Badge className="bg-red-500">{execution.status}</Badge>}
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-muted-foreground">Progreso</span>
+                      <span className="font-medium">{execution.progress}%</span>
+                    </div>
+                    <Progress value={execution.progress} />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
+                    <div className="bg-muted/50 p-3 rounded-lg flex flex-col">
+                      <span className="text-xs text-muted-foreground">Casos de Prueba</span>
+                      <span className="text-xl font-bold mt-1">{execution.testCases}</span>
+                    </div>
+                    <div className="bg-green-100 dark:bg-green-900/20 p-3 rounded-lg flex flex-col">
+                      <span className="text-xs text-green-800 dark:text-green-300">Pasados</span>
+                      <span className="text-xl font-bold mt-1 text-green-800 dark:text-green-300">{execution.passedTests}</span>
+                    </div>
+                    <div className="bg-red-100 dark:bg-red-900/20 p-3 rounded-lg flex flex-col">
+                      <span className="text-xs text-red-800 dark:text-red-300">Fallidos</span>
+                      <span className="text-xl font-bold mt-1 text-red-800 dark:text-red-300">{execution.failedTests}</span>
+                    </div>
+                    <div className="bg-amber-100 dark:bg-amber-900/20 p-3 rounded-lg flex flex-col">
+                      <span className="text-xs text-amber-800 dark:text-amber-300">Pendientes</span>
+                      <span className="text-xl font-bold mt-1 text-amber-800 dark:text-amber-300">{execution.testCases - execution.executedTests}</span>
+                    </div>
+                    {execution.blockedTests > 0 && (
+                      <div className="bg-purple-100 dark:bg-purple-900/20 p-3 rounded-lg flex flex-col">
+                        <span className="text-xs text-purple-800 dark:text-purple-300">Bloqueados</span>
+                        <span className="text-xl font-bold mt-1 text-purple-800 dark:text-purple-300">{execution.blockedTests}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row justify-between gap-4 p-4 bg-muted/30 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback>{execution.executor.name.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <div className="text-sm font-medium">{execution.executor.name}</div>
+                        <div className="text-xs text-muted-foreground">Ejecutor</div>
+                      </div>
+                    </div>
+                    <div className="flex gap-4">
+                      <div className="flex items-center gap-2">
+                        <CalendarDays className="h-4 w-4 text-muted-foreground" />
+                        <div className="text-sm">
+                          <div>Inicio: {execution.startDate}</div>
+                          <div>Fin: {execution.endDate}</div>
+                        </div>
+                      </div>
+                      <Button variant="outline" size="sm" className="whitespace-nowrap">
+                        Ver Detalles
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+        </div>
+      </TabsContent>
+    </Tabs>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
         <Card>
