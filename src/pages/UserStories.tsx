@@ -1,5 +1,6 @@
 
 import { Button } from "@/components/ui/button";
+import { useState } from "react"; // Importa useState para manejar el estado de búsqueda
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -62,6 +63,9 @@ const mockUserStories = [
 ];
 
 const UserStories = () => {
+  // Estado para el término de búsqueda
+  const [searchTerm, setSearchTerm] = useState("");
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
@@ -83,27 +87,42 @@ const UserStories = () => {
             <div className="relative flex-1">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
+                value={searchTerm} // Asigna el valor del estado al input
+                onChange={(e) => setSearchTerm(e.target.value)} // Actualiza el estado con el valor del input
                 type="search"
                 placeholder="Buscar historias..."
                 className="pl-8"
               />
             </div>
-            <Button variant="outline" size="icon">
-              <Filter className="h-4 w-4" />
-            </Button>
-          </div>
+          </div>{/* Elimina el botón de filtro junto al input de búsqueda */}
 
-          <Tabs defaultValue="todas">
+          {/* Componente Tabs para filtrar las historias por estado */}
+          <Tabs defaultValue="todas"> 
             <TabsList className="w-full">
+              {/* Trigger para mostrar todas las historias */}
               <TabsTrigger value="todas" className="flex-1">Todas</TabsTrigger>
+              {/* Trigger para mostrar solo las historias con estado "Pendiente" */}
               <TabsTrigger value="pendientes" className="flex-1">Pendientes</TabsTrigger>
+              {/* Trigger para mostrar solo las historias con estado "En Progreso" */}
               <TabsTrigger value="proceso" className="flex-1">En Proceso</TabsTrigger>
+              {/* Trigger para mostrar solo las historias con estado "Completado" */}
               <TabsTrigger value="completadas" className="flex-1">Completadas</TabsTrigger>
             </TabsList>
             
+            {/* Muestra las historias que coinciden con el término de búsqueda y el estado "Todas" */}
             <TabsContent value="todas" className="space-y-4 mt-4">
-              {mockUserStories.map((story) => (
-                <Card key={story.id} className="hover:shadow-md cursor-pointer transition-shadow">
+              {mockUserStories
+                .filter((story) => 
+                  searchTerm === "" || // Si no hay término de búsqueda, muestra todas las historias
+                  Object.values(story).some(value => // Busca en todos los valores de cada historia
+                    typeof value === 'string' && value.toLowerCase().includes(searchTerm.toLowerCase())
+                  )
+                )
+                .map((story) => (
+                  <Card 
+                    key={story.id} 
+                    className="hover:shadow-md cursor-pointer transition-shadow"
+                  >
                   <CardHeader className="pb-2">
                     <div className="flex justify-between items-start">
                       <div className="flex items-center gap-2">
@@ -119,7 +138,9 @@ const UserStories = () => {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-sm text-muted-foreground line-clamp-2 mb-2">{story.description}</p>
+                    <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
+                      {story.description}
+                    </p>
                     <div className="flex justify-between items-center mt-4 text-sm">
                       <div className="flex items-center gap-1">
                         <Clock className="h-4 w-4 text-muted-foreground" />
@@ -127,51 +148,168 @@ const UserStories = () => {
                       </div>
                       <div className="flex items-center gap-2">
                         <div className="flex items-center gap-1">
-                          <CheckCheck className="h-4 w-4 text-green-500" />
-                          <span className="text-muted-foreground">{story.completedTests}/{story.testCases} tests</span>
+                          <CheckCheck className="h-4 w-4 text-green-500" /> {/* Icono para tests completados */}
+                          <span className="text-muted-foreground">
+                            {story.completedTests}/{story.testCases} tests
+                          </span>
                         </div>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
               ))}
-            </TabsContent>
-            
-            <TabsContent value="pendientes">
-              <div className="p-4 text-center text-muted-foreground">
-                Filtro de historias pendientes
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="proceso">
-              <div className="p-4 text-center text-muted-foreground">
-                Filtro de historias en proceso
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="completadas">
-              <div className="p-4 text-center text-muted-foreground">
-                Filtro de historias completadas
-              </div>
-            </TabsContent>
+            </TabsContent> {/* Fin del contenido para "todas" las historias */}
+
+            {/* Muestra las historias que coinciden con el término de búsqueda y el estado "Pendiente" */}
+            <TabsContent value="pendientes" className="space-y-4 mt-4"> {/* Contenido para historias "Pendientes" */}
+              {mockUserStories
+                .filter((story) => story.status === "Pendiente") // Filtra por estado "Pendiente"
+                .filter((story) =>
+                  searchTerm === "" || // Si no hay término de búsqueda, muestra todas las historias pendientes
+                  Object.values(story).some(value => // Busca en todos los valores de cada historia
+                    typeof value === 'string' && value.toLowerCase().includes(searchTerm.toLowerCase())
+                  )
+                )
+                .map((story) => (
+                  <Card 
+                    key={story.id} 
+                    className="hover:shadow-md cursor-pointer transition-shadow"
+                  >
+                    <CardHeader className="pb-2">
+                      <div className="flex justify-between items-start">
+                        <div className="flex items-center gap-2">
+                          <BookText className="h-5 w-5 text-qa-purple" />
+                          <CardTitle className="text-base">{story.id}: {story.title}</CardTitle>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge className="bg-gray-500">{story.status}</Badge>
+                          <Badge variant="outline">{story.priority}</Badge>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
+                        {story.description}
+                      </p>
+                      <div className="flex justify-between items-center mt-4 text-sm">
+                        <div className="flex items-center gap-1">
+                          <Clock className="h-4 w-4 text-muted-foreground" />
+                          <span>Asignado a: {story.assignee}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-1">
+                            <CheckCheck className="h-4 w-4 text-green-500" /> {/* Icono para tests completados */}
+                            <span className="text-muted-foreground">
+                              {story.completedTests}/{story.testCases} tests
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+            </TabsContent> {/* Fin del contenido para historias "Pendientes" */}
+
+            {/* Muestra las historias que coinciden con el término de búsqueda y el estado "En Progreso" */}
+            <TabsContent value="proceso" className="space-y-4 mt-4"> {/* Contenido para historias "En Progreso" */}
+              {mockUserStories
+                .filter((story) => story.status === "En Progreso") // Filtra por estado "En Progreso"
+                .filter((story) =>
+                  searchTerm === "" || // Si no hay término de búsqueda, muestra todas las historias en progreso
+                  Object.values(story).some(value => // Busca en todos los valores de cada historia
+                    typeof value === 'string' && value.toLowerCase().includes(searchTerm.toLowerCase())
+                  )
+                )
+                .map((story) => (
+                  <Card 
+                    key={story.id} 
+                    className="hover:shadow-md cursor-pointer transition-shadow"
+                  >
+                    <CardHeader className="pb-2">
+                      <div className="flex justify-between items-start">
+                        <div className="flex items-center gap-2">
+                          <BookText className="h-5 w-5 text-qa-purple" />
+                          <CardTitle className="text-base">{story.id}: {story.title}</CardTitle>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge className="bg-amber-500">{story.status}</Badge>
+                          <Badge variant="outline">{story.priority}</Badge>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
+                        {story.description}
+                      </p>
+                      <div className="flex justify-between items-center mt-4 text-sm">
+                        <div className="flex items-center gap-1">
+                          <Clock className="h-4 w-4 text-muted-foreground" />
+                          <span>Asignado a: {story.assignee}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-1">
+                            <CheckCheck className="h-4 w-4 text-green-500" /> {/* Icono para tests completados */}
+                            <span className="text-muted-foreground">
+                              {story.completedTests}/{story.testCases} tests
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+            </TabsContent> {/* Fin del contenido para historias "En Progreso" */}
+
+            {/* Muestra las historias que coinciden con el término de búsqueda y el estado "Completado" */}
+            <TabsContent value="completadas" className="space-y-4 mt-4"> {/* Contenido para historias "Completadas" */}
+              {mockUserStories
+                .filter((story) => story.status === "Completado") // Filtra por estado "Completado"
+                .filter((story) =>
+                  searchTerm === "" || // Si no hay término de búsqueda, muestra todas las historias completadas
+                  Object.values(story).some(value => // Busca en todos los valores de cada historia
+                    typeof value === 'string' && value.toLowerCase().includes(searchTerm.toLowerCase())
+                  )
+                )
+                .map((story) => (
+                  <Card 
+                    key={story.id} 
+                    className="hover:shadow-md cursor-pointer transition-shadow"
+                  >
+                    <CardHeader className="pb-2">
+                      <div className="flex justify-between items-start">
+                        <div className="flex items-center gap-2">
+                          <BookText className="h-5 w-5 text-qa-purple" />
+                          <CardTitle className="text-base">{story.id}: {story.title}</CardTitle>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge className="bg-green-500">{story.status}</Badge>
+                          <Badge variant="outline">{story.priority}</Badge>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
+                        {story.description}
+                      </p>
+                      <div className="flex justify-between items-center mt-4 text-sm">
+                        <div className="flex items-center gap-1">
+                          <Clock className="h-4 w-4 text-muted-foreground" />
+                          <span>Asignado a: {story.assignee}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-1">
+                            <CheckCheck className="h-4 w-4 text-green-500" /> {/* Icono para tests completados */}
+                            <span className="text-muted-foreground">
+                              {story.completedTests}/{story.testCases} tests
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+            </TabsContent> {/* Fin del contenido para historias "Completadas" */}
           </Tabs>
-        </div>
-        
-        <div className="w-full md:w-1/3">
-          <Card>
-            <CardHeader>
-              <CardTitle>Detalles de Historia</CardTitle>
-              <CardDescription>
-                Selecciona una historia para ver sus detalles
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="text-center py-12">
-              <BookText className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />
-              <p className="text-muted-foreground">
-                Selecciona una historia de usuario para ver los detalles y criterios de aceptación
-              </p>
-            </CardContent>
-          </Card>
         </div>
       </div>
     </div>

@@ -14,6 +14,7 @@ import { FileText, Plus, Search, CheckCircle, Clock, XCircle, Calendar, CheckChe
 import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
+import { useState } from "react"; // Importa useState para manejar el estado de búsqueda
 // Datos simulados de planes de prueba
 const mockTestPlans = [
   {
@@ -70,6 +71,9 @@ const mockTestPlans = [
 ];
 
 const TestPlans = () => {
+  // Estado para el término de búsqueda
+  const [searchTerm, setSearchTerm] = useState("");
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
@@ -85,17 +89,32 @@ const TestPlans = () => {
         </Button>
       </div>
 
-      <div className="relative mb-6">
-        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-        <Input
-          type="search"
-          placeholder="Buscar planes de prueba..."
-          className="pl-8"
-        />
-      </div>
+      {/* Contenedor del buscador */}
+      <div className="flex gap-2 mb-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            value={searchTerm} // Asigna el valor del estado al input
+            onChange={(e) => setSearchTerm(e.target.value)} // Actualiza el estado con el valor del input
+            type="search"
+            placeholder="Buscar planes de prueba..."
+            className="pl-8"
+          />
+        </div>
+      </div>{/* Elimina el botón de filtro */}
+
 
       <div className="grid grid-cols-1 gap-6">
-        {mockTestPlans.map((plan) => (
+        {/* Filtra los planes de prueba por el término de búsqueda */}
+        {mockTestPlans
+          .filter((plan) =>
+            searchTerm === "" || // Si no hay término de búsqueda, muestra todos los planes
+            Object.values(plan).some((value) => // Busca en todos los valores de cada plan
+              typeof value === "string" &&
+              value.toLowerCase().includes(searchTerm.toLowerCase())
+            )
+          )
+          .map((plan) => (
           <Card key={plan.id} className="hover:shadow-md transition-shadow">
             <CardHeader>
               <div className="flex justify-between items-start">

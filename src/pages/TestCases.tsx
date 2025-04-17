@@ -31,6 +31,7 @@ import {
   TableRow 
 } from "@/components/ui/table";
 
+import { useState } from "react"; // Importa useState para manejar el estado de búsqueda
 // Datos simulados de casos de prueba
 const mockTestCases = [
   {
@@ -91,6 +92,9 @@ const mockTestCases = [
 ];
 
 const TestCases = () => {
+  // Estado para el término de búsqueda
+  const [searchTerm, setSearchTerm] = useState("");
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
@@ -106,143 +110,319 @@ const TestCases = () => {
         </Button>
       </div>
 
-      <div className="flex gap-4 mb-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            type="search"
-            placeholder="Buscar casos de prueba..."
-            className="pl-8"
-          />
+      <div className="flex flex-col md:flex-row gap-4">
+        <div className="flex-1">
+          <div className="flex gap-2 mb-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                value={searchTerm} // Asigna el valor del estado al input
+                onChange={(e) => setSearchTerm(e.target.value)} // Actualiza el estado con el valor del input
+                type="search"
+                placeholder="Buscar casos de prueba..."
+                className="pl-8"
+              />
+            </div>
+          </div>{/* Elimina el botón de filtro */}
+
+          <Tabs defaultValue="todos">
+            <TabsList className="w-full">
+              <TabsTrigger value="todos" className="flex-1">Todos</TabsTrigger>
+              <TabsTrigger value="no-ejecutados" className="flex-1">No Ejecutados</TabsTrigger>
+              <TabsTrigger value="pasados" className="flex-1">Pasados</TabsTrigger>
+              <TabsTrigger value="fallidos" className="flex-1">Fallidos</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="todos" className="mt-4">
+              {/* Card que contiene la tabla de casos de prueba */} <Card>
+                <CardContent className="p-0">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-10">Estado</TableHead>
+                        <TableHead className="w-20">ID</TableHead>
+                        <TableHead>Título</TableHead>
+                        <TableHead>Tipo</TableHead>
+                        <TableHead>Prioridad</TableHead>
+                        <TableHead>Historia</TableHead>
+                        <TableHead className="text-right">Última Ejecución</TableHead>
+                      </TableRow> 
+                    </TableHeader>
+                     {/* Mapeo y renderizado de los casos de prueba */} <TableBody>
+                      {mockTestCases.filter((testCase) => // Filtra los casos de prueba segun el estado del tab
+                      searchTerm === "" || // Si no hay termino de busqueda, muestra todos los casos de prueba
+                      Object.values(testCase).some(value => 
+                        typeof value === "string" && 
+                        value.toLowerCase().includes(searchTerm.toLowerCase()) // Busca en todos los valores del caso de prueba si el valor (en minusculas) incluye el termino de busqueda (en minusculas)
+                      )).map((testCase) => (
+                          <TableRow
+                            key={testCase.id}
+                            className="cursor-pointer hover:bg-muted/50"
+                          >
+                           {/* Icono de estado del caso de prueba */} <TableCell>
+                            {testCase.status === "Pasado" && (<CheckCircle className="h-5 w-5 text-green-500" />)}
+                            {testCase.status === "Fallido" && (<XCircle className="h-5 w-5 text-red-500" />)}
+                            {testCase.status === "No Ejecutado" && (<Clock className="h-5 w-5 text-amber-500" />)}
+                          </TableCell>
+                          {/* ID del caso de prueba */} <TableCell className="font-medium">{testCase.id}</TableCell>
+                          {/* Título del caso de prueba */} <TableCell>{testCase.title}</TableCell>
+                           {/* Tipo del caso de prueba */} <TableCell><Badge variant="outline">{testCase.type}</Badge></TableCell>
+                          {/* Prioridad del caso de prueba */} <TableCell>
+                            {testCase.priority === "Alta" && (<Badge className="bg-red-500">{testCase.priority}</Badge>)}
+                            {testCase.priority === "Media" && (<Badge className="bg-amber-500">{testCase.priority}</Badge>)}
+                            {testCase.priority === "Baja" && (<Badge className="bg-green-500">{testCase.priority}</Badge>)}
+                          </TableCell>
+                           {/* Historia de usuario asociada al caso de prueba */} <TableCell>{testCase.userStory}</TableCell>
+                           {/* Última ejecución del caso de prueba */} <TableCell className="text-right">{testCase.lastExecuted}</TableCell>
+                          </TableRow>
+                        ))} 
+                    </TableBody> 
+                  </Table>
+                </CardContent>
+                <CardFooter className="flex justify-between py-4">
+                  <div className="text-sm text-muted-foreground">
+                    Mostrando 5 de 5 casos de prueba
+                  </div>
+                  <div className="flex gap-1">
+                    <Button variant="outline" size="sm" disabled>
+                      Anterior
+                    </Button>
+                    <Button variant="outline" size="sm" disabled>
+                      Siguiente
+                    </Button>
+                  </div>
+                </CardFooter>
+              </Card> 
+            </TabsContent>
+
+            <TabsContent value="no-ejecutados">
+              {/* Card que contiene la tabla de casos de prueba */} <Card>
+                <CardContent className="p-0">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-10">Estado</TableHead>
+                        <TableHead className="w-20">ID</TableHead>
+                        <TableHead>Título</TableHead>
+                        <TableHead>Tipo</TableHead>
+                        <TableHead>Prioridad</TableHead>
+                        <TableHead>Historia</TableHead>
+                        <TableHead className="text-right">Última Ejecución</TableHead>
+                      </TableRow> 
+                    </TableHeader>
+                     {/* Mapeo y renderizado de los casos de prueba */} <TableBody>
+                      {mockTestCases.filter((testCase) => testCase.status === "No Ejecutado" && // Filtra los casos de prueba segun el estado del tab
+                      (searchTerm === "" || // Si no hay termino de busqueda, muestra todos los casos de prueba
+                      Object.values(testCase).some(value => 
+                        typeof value === "string" && 
+                        value.toLowerCase().includes(searchTerm.toLowerCase()) // Busca en todos los valores del caso de prueba si el valor (en minusculas) incluye el termino de busqueda (en minusculas)
+                      ))).map((testCase) => (
+                          <TableRow
+                            key={testCase.id}
+                            className="cursor-pointer hover:bg-muted/50"
+                          >
+                           {/* Icono de estado del caso de prueba */} <TableCell>
+                            {testCase.status === "Pasado" && (<CheckCircle className="h-5 w-5 text-green-500" />)}
+                            {testCase.status === "Fallido" && (<XCircle className="h-5 w-5 text-red-500" />)}
+                            {testCase.status === "No Ejecutado" && (<Clock className="h-5 w-5 text-amber-500" />)}
+                          </TableCell>
+                          {/* ID del caso de prueba */} <TableCell className="font-medium">{testCase.id}</TableCell>
+                          {/* Título del caso de prueba */} <TableCell>{testCase.title}</TableCell>
+                           {/* Tipo del caso de prueba */} <TableCell><Badge variant="outline">{testCase.type}</Badge></TableCell>
+                          {/* Prioridad del caso de prueba */} <TableCell>
+                            {testCase.priority === "Alta" && (<Badge className="bg-red-500">{testCase.priority}</Badge>)}
+                            {testCase.priority === "Media" && (<Badge className="bg-amber-500">{testCase.priority}</Badge>)}
+                            {testCase.priority === "Baja" && (<Badge className="bg-green-500">{testCase.priority}</Badge>)}
+                          </TableCell>
+                           {/* Historia de usuario asociada al caso de prueba */} <TableCell>{testCase.userStory}</TableCell>
+                           {/* Última ejecución del caso de prueba */} <TableCell className="text-right">{testCase.lastExecuted}</TableCell>
+                          </TableRow>
+                        ))} 
+                    </TableBody> 
+                  </Table>
+                </CardContent>
+                <CardFooter className="flex justify-between py-4">
+                  <div className="text-sm text-muted-foreground">
+                    Mostrando 5 de 5 casos de prueba
+                  </div>
+                  <div className="flex gap-1">
+                    <Button variant="outline" size="sm" disabled>
+                      Anterior
+                    </Button>
+                    <Button variant="outline" size="sm" disabled>
+                      Siguiente
+                    </Button>
+                  </div>
+                </CardFooter>
+              </Card> 
+            </TabsContent>
+
+            <TabsContent value="pasados">
+              {/* Card que contiene la tabla de casos de prueba */} <Card>
+                <CardContent className="p-0">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-10">Estado</TableHead>
+                        <TableHead className="w-20">ID</TableHead>
+                        <TableHead>Título</TableHead>
+                        <TableHead>Tipo</TableHead>
+                        <TableHead>Prioridad</TableHead>
+                        <TableHead>Historia</TableHead>
+                        <TableHead className="text-right">Última Ejecución</TableHead>
+                      </TableRow> 
+                    </TableHeader>
+                     {/* Mapeo y renderizado de los casos de prueba */} <TableBody>
+                      {mockTestCases.filter((testCase) => testCase.status === "Pasado" && // Filtra los casos de prueba segun el estado del tab
+                      (searchTerm === "" || // Si no hay termino de busqueda, muestra todos los casos de prueba
+                      Object.values(testCase).some(value => 
+                        typeof value === "string" && 
+                        value.toLowerCase().includes(searchTerm.toLowerCase()) // Busca en todos los valores del caso de prueba si el valor (en minusculas) incluye el termino de busqueda (en minusculas)
+                      ))).map((testCase) => (
+                          <TableRow
+                            key={testCase.id}
+                            className="cursor-pointer hover:bg-muted/50"
+                          >
+                           {/* Icono de estado del caso de prueba */} <TableCell>
+                            {testCase.status === "Pasado" && (<CheckCircle className="h-5 w-5 text-green-500" />)}
+                            {testCase.status === "Fallido" && (<XCircle className="h-5 w-5 text-red-500" />)}
+                            {testCase.status === "No Ejecutado" && (<Clock className="h-5 w-5 text-amber-500" />)}
+                          </TableCell>
+                          {/* ID del caso de prueba */} <TableCell className="font-medium">{testCase.id}</TableCell>
+                          {/* Título del caso de prueba */} <TableCell>{testCase.title}</TableCell>
+                           {/* Tipo del caso de prueba */} <TableCell><Badge variant="outline">{testCase.type}</Badge></TableCell>
+                          {/* Prioridad del caso de prueba */} <TableCell>
+                            {testCase.priority === "Alta" && (<Badge className="bg-red-500">{testCase.priority}</Badge>)}
+                            {testCase.priority === "Media" && (<Badge className="bg-amber-500">{testCase.priority}</Badge>)}
+                            {testCase.priority === "Baja" && (<Badge className="bg-green-500">{testCase.priority}</Badge>)}
+                          </TableCell>
+                           {/* Historia de usuario asociada al caso de prueba */} <TableCell>{testCase.userStory}</TableCell>
+                           {/* Última ejecución del caso de prueba */} <TableCell className="text-right">{testCase.lastExecuted}</TableCell>
+                          </TableRow>
+                        ))} 
+                    </TableBody> 
+                  </Table>
+                </CardContent>
+                <CardFooter className="flex justify-between py-4">
+                  <div className="text-sm text-muted-foreground">
+                    Mostrando 5 de 5 casos de prueba
+                  </div>
+                  <div className="flex gap-1">
+                    <Button variant="outline" size="sm" disabled>
+                      Anterior
+                    </Button>
+                    <Button variant="outline" size="sm" disabled>
+                      Siguiente
+                    </Button>
+                  </div>
+                </CardFooter>
+              </Card> 
+            </TabsContent>
+
+            <TabsContent value="fallidos">
+              {/* Card que contiene la tabla de casos de prueba */} <Card>
+                <CardContent className="p-0">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-10">Estado</TableHead>
+                        <TableHead className="w-20">ID</TableHead>
+                        <TableHead>Título</TableHead>
+                        <TableHead>Tipo</TableHead>
+                        <TableHead>Prioridad</TableHead>
+                        <TableHead>Historia</TableHead>
+                        <TableHead className="text-right">Última Ejecución</TableHead>
+                      </TableRow> 
+                    </TableHeader>
+                     {/* Mapeo y renderizado de los casos de prueba */} <TableBody>
+                      {mockTestCases.filter((testCase) => testCase.status === "Fallido" && // Filtra los casos de prueba segun el estado del tab
+                      (searchTerm === "" || // Si no hay termino de busqueda, muestra todos los casos de prueba
+                      Object.values(testCase).some(value => 
+                        typeof value === "string" && 
+                        value.toLowerCase().includes(searchTerm.toLowerCase()) // Busca en todos los valores del caso de prueba si el valor (en minusculas) incluye el termino de busqueda (en minusculas)
+                      ))).map((testCase) => (
+                          <TableRow
+                            key={testCase.id}
+                            className="cursor-pointer hover:bg-muted/50"
+                          >
+                           {/* Icono de estado del caso de prueba */} <TableCell>
+                            {testCase.status === "Pasado" && (<CheckCircle className="h-5 w-5 text-green-500" />)}
+                            {testCase.status === "Fallido" && (<XCircle className="h-5 w-5 text-red-500" />)}
+                            {testCase.status === "No Ejecutado" && (<Clock className="h-5 w-5 text-amber-500" />)}
+                          </TableCell>
+                          {/* ID del caso de prueba */} <TableCell className="font-medium">{testCase.id}</TableCell>
+                          {/* Título del caso de prueba */} <TableCell>{testCase.title}</TableCell>
+                           {/* Tipo del caso de prueba */} <TableCell><Badge variant="outline">{testCase.type}</Badge></TableCell>
+                          {/* Prioridad del caso de prueba */} <TableCell>
+                            {testCase.priority === "Alta" && (<Badge className="bg-red-500">{testCase.priority}</Badge>)}
+                            {testCase.priority === "Media" && (<Badge className="bg-amber-500">{testCase.priority}</Badge>)}
+                            {testCase.priority === "Baja" && (<Badge className="bg-green-500">{testCase.priority}</Badge>)}
+                          </TableCell>
+                           {/* Historia de usuario asociada al caso de prueba */} <TableCell>{testCase.userStory}</TableCell>
+                           {/* Última ejecución del caso de prueba */} <TableCell className="text-right">{testCase.lastExecuted}</TableCell>
+                          </TableRow>
+                        ))} 
+                    </TableBody> 
+                  </Table>
+                </CardContent>
+                <CardFooter className="flex justify-between py-4">
+                  <div className="text-sm text-muted-foreground">
+                    Mostrando 5 de 5 casos de prueba
+                  </div>
+                  <div className="flex gap-1">
+                    <Button variant="outline" size="sm" disabled>
+                      Anterior
+                    </Button>
+                    <Button variant="outline" size="sm" disabled>
+                      Siguiente
+                    </Button>
+                  </div>
+                </CardFooter>
+              </Card> 
+            </TabsContent>
+          </Tabs>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+            <Card>
+              <CardHeader className="pb-2">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-5 w-5 text-green-500" />
+                  <CardTitle className="text-base">Casos Pasados</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold">2</div>
+                <p className="text-sm text-muted-foreground">40% del total de casos</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <div className="flex items-center gap-2">
+                  <XCircle className="h-5 w-5 text-red-500" />
+                  <CardTitle className="text-base">Casos Fallidos</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold">1</div>
+                <p className="text-sm text-muted-foreground">20% del total de casos</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <div className="flex items-center gap-2">
+                  <Clock className="h-5 w-5 text-amber-500" />
+                  <CardTitle className="text-base">Pendientes</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold">2</div>
+                <p className="text-sm text-muted-foreground">40% del total de casos</p>
+              </CardContent>
+            </Card>
+          </div>
         </div>
-        <Button variant="outline">
-          <Filter className="mr-2 h-4 w-4" />
-          Filtrar
-        </Button>
-      </div>
-
-      <Tabs defaultValue="todos">
-        <TabsList className="w-full">
-          <TabsTrigger value="todos" className="flex-1">Todos</TabsTrigger>
-          <TabsTrigger value="no-ejecutados" className="flex-1">No Ejecutados</TabsTrigger>
-          <TabsTrigger value="pasados" className="flex-1">Pasados</TabsTrigger>
-          <TabsTrigger value="fallidos" className="flex-1">Fallidos</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="todos" className="mt-4">
-          <Card>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-10">Estado</TableHead>
-                    <TableHead className="w-20">ID</TableHead>
-                    <TableHead>Título</TableHead>
-                    <TableHead>Tipo</TableHead>
-                    <TableHead>Prioridad</TableHead>
-                    <TableHead>Historia</TableHead>
-                    <TableHead className="text-right">Última Ejecución</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {mockTestCases.map((testCase) => (
-                    <TableRow key={testCase.id} className="cursor-pointer hover:bg-muted/50">
-                      <TableCell>
-                        {testCase.status === "Pasado" && <CheckCircle className="h-5 w-5 text-green-500" />}
-                        {testCase.status === "Fallido" && <XCircle className="h-5 w-5 text-red-500" />}
-                        {testCase.status === "No Ejecutado" && <Clock className="h-5 w-5 text-amber-500" />}
-                      </TableCell>
-                      <TableCell className="font-medium">{testCase.id}</TableCell>
-                      <TableCell>{testCase.title}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{testCase.type}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        {testCase.priority === "Alta" && <Badge className="bg-red-500">{testCase.priority}</Badge>}
-                        {testCase.priority === "Media" && <Badge className="bg-amber-500">{testCase.priority}</Badge>}
-                        {testCase.priority === "Baja" && <Badge className="bg-green-500">{testCase.priority}</Badge>}
-                      </TableCell>
-                      <TableCell>{testCase.userStory}</TableCell>
-                      <TableCell className="text-right">{testCase.lastExecuted}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-            <CardFooter className="flex justify-between py-4">
-              <div className="text-sm text-muted-foreground">
-                Mostrando 5 de 5 casos de prueba
-              </div>
-              <div className="flex gap-1">
-                <Button variant="outline" size="sm" disabled>
-                  Anterior
-                </Button>
-                <Button variant="outline" size="sm" disabled>
-                  Siguiente
-                </Button>
-              </div>
-            </CardFooter>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="no-ejecutados">
-          <div className="p-4 text-center text-muted-foreground">
-            Filtro de casos no ejecutados
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="pasados">
-          <div className="p-4 text-center text-muted-foreground">
-            Filtro de casos pasados
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="fallidos">
-          <div className="p-4 text-center text-muted-foreground">
-            Filtro de casos fallidos
-          </div>
-        </TabsContent>
-      </Tabs>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-        <Card>
-          <CardHeader className="pb-2">
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-5 w-5 text-green-500" />
-              <CardTitle className="text-base">Casos Pasados</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">2</div>
-            <p className="text-sm text-muted-foreground">40% del total de casos</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="pb-2">
-            <div className="flex items-center gap-2">
-              <XCircle className="h-5 w-5 text-red-500" />
-              <CardTitle className="text-base">Casos Fallidos</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">1</div>
-            <p className="text-sm text-muted-foreground">20% del total de casos</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="pb-2">
-            <div className="flex items-center gap-2">
-              <Clock className="h-5 w-5 text-amber-500" />
-              <CardTitle className="text-base">Pendientes</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">2</div>
-            <p className="text-sm text-muted-foreground">40% del total de casos</p>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );
